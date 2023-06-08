@@ -21,6 +21,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(helmet.contentSecurityPolicy({
 	directives:{
+    defaultSrc:["'self'"],
 		scriptSrc: ["'self'"],
 		styleSrc: ["'self'"]
 	}

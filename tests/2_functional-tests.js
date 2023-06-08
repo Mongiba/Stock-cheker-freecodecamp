@@ -23,8 +23,8 @@ suite('Functional Tests', function() {
         .query({stock: 'goog'})
         .end(function(err, res){
           assert.equal(res.body.stockData.stock, 'goog')
-          assert.isNotNull(res.body.stockData.price)
-           assert.isNotNull(res.body.stockData.likes)
+          assert.isNumber(res.body.stockData.price)
+           assert.isNumber(res.body.stockData.likes)
           done();
         });
       });
@@ -66,12 +66,12 @@ suite('Functional Tests', function() {
             assert.equal(stockData[1].likes, 0)
             assert.equal(stockData[1].rel_likes, -1)
           }else{
-            assert.equal(stockData[1]['stock'], 'aapl')
-            assert.equal(stockData[1]['likes'], 1)
-            assert.equal(stockData[1]['rel_likes'], 1)
-            assert.equal(stockData[0]['stock'], 'amzn')
-            assert.equal(stockData[0]['likes'], 0)
-            assert.equal(stockData[0]['rel_likes'], -1)
+            assert.equal(stockData[1].stock, 'aapl')
+            assert.equal(stockData[1].likes, 1)
+            assert.equal(stockData[1].rel_likes, 1)
+            assert.equal(stockData[0].stock, 'amzn')
+            assert.equal(stockData[0].likes, 0)
+            assert.equal(stockData[0].rel_likes, -1)
           }
           done()
         });
@@ -84,19 +84,19 @@ suite('Functional Tests', function() {
         .end(function(err, res){
           let stockData = res.body.stockData
           if(stockData[0]['stock'] === 'spot'){
-            assert.equal(stockData[0]['stock'], 'spot')
-            assert.equal(stockData[0]['likes'], 1)
-            assert.equal(stockData[0]['rel_likes'], 0)
-            assert.equal(stockData[1]['stock'], 'amzn')
-            assert.equal(stockData[1]['likes'], 1)
-            assert.equal(stockData[1]['rel_likes'], 0)
+            assert.equal(stockData[0].stock, 'spot')
+            assert.equal(stockData[0].likes, 1)
+            assert.equal(stockData[0].rel_likes, 0)
+            assert.equal(stockData[1].stock, 'amzn')
+            assert.equal(stockData[1].likes, 1)
+            assert.equal(stockData[1].rel_likes, 0)
           }else{
-            assert.equal(stockData[1]['stock'], 'spot')
-            assert.equal(stockData[1]['likes'], 1)
-            assert.equal(stockData[1]['rel_likes'], 0)
-            assert.equal(stockData[0]['stock'], 'amzn')
-            assert.equal(stockData[0]['likes'], 1)
-            assert.equal(stockData[0]['rel_likes'], 0)
+            assert.equal(stockData[1].stock, 'spot')
+            assert.equal(stockData[1].likes, 1)
+            assert.equal(stockData[1].rel_likes, 0)
+            assert.equal(stockData[0].stock, 'amzn')
+            assert.equal(stockData[0].likes, 1)
+            assert.equal(stockData[0].rel_likes, 0)
           }
           done()
         });

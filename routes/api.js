@@ -20,7 +20,8 @@ module.exports = function (app) {
   mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
   
   let stockSchema = new mongoose.Schema({
-    name: {type: String, required: true},
+    symbol: {type: String, required: true},
+    price: { type: Number },
     likes: {type: Number, default: 0},
     ips: [String]
   })
@@ -40,10 +41,11 @@ module.exports = function (app) {
       let outputResponse = () => {
           return res.json(responseObject)
       }
+      let stocks = [];
 
       /* Find/Update Stock Document */
       let findOrUpdateStock = (stockName, documentUpdate, nextStep) => {
-        Stock.findOneAndUpdate({ name: stockName }, documentUpdate, { new: true, upsert: true })
+        Stock.findOneAndUpdate({ symbol: stockName }, documentUpdate, { new: true, upsert: true })
           .then(stockDocument => {
             if (stockDocument) {
               if (twoStocks === false) {
@@ -61,7 +63,7 @@ module.exports = function (app) {
 
       /* Like Stock */
       let likeStock = (stockName, nextStep) => {
-        Stock.findOne({ name: stockName })
+        Stock.findOne({ symbol: stockName })
           .exec()
           .then(stockDocument => {
             if (stockDocument && stockDocument['ips'] && stockDocument['ips'].includes(req.ip)) {
@@ -83,7 +85,7 @@ module.exports = function (app) {
         xhr.open('GET', requestUrl, true)
         xhr.onload = () => {
           let apiResponse = JSON.parse(xhr.responseText)
-          stockDocument['price'] = apiResponse['latestPrice'].toFixed(2)
+          stockDocument['price'] = Number(apiResponse['latestPrice']).toFixed(2);
           nextStep(stockDocument, outputResponse)
         }
         xhr.send()
@@ -91,29 +93,29 @@ module.exports = function (app) {
 
       /* Build Response for 1 Stock */
       let processOneStock = (stockDocument, nextStep) => {
-        responseObject['stockData']['stock'] = stockDocument['name']
-        responseObject['stockData']['price'] = stockDocument['price']
-        responseObject['stockData']['likes'] = stockDocument['likes']
-        nextStep()
-      }
+        responseObject['stockData']['stock'] = stockDocument['symbol'];
+        responseObject['stockData']['price'] = Number(stockDocument['price']) || 0;
+        responseObject['stockData']['likes'] = Number(stockDocument['likes']);
+        nextStep();
+      };
+      
 
-      let stocks = []        
-      /* Build Response for 2 Stocks */
       let processTwoStocks = (stockDocument, nextStep) => {
-        let newStock = {}
-        newStock['stock'] = stockDocument['name']
-        newStock['price'] = stockDocument['price']
-        newStock['likes'] = stockDocument['likes']
-        stocks.push(newStock)
-        if(stocks.length === 2){
-          stocks[0]['rel_likes'] = stocks[0]['likes'] - stocks[1]['likes']
-          stocks[1]['rel_likes'] = stocks[1]['likes'] - stocks[0]['likes']
-          responseObject['stockData'] = stocks
-          nextStep()
-        }else{
-          return
+        let newStock = {};
+        newStock['stock'] = stockDocument['symbol'];
+        responseObject['stockData']['price'] = Number(stockDocument['price']) || 0;
+        newStock['likes'] = Number(stockDocument['likes']);
+        stocks.push(newStock);
+        if (stocks.length === 2) {
+          stocks[0]['rel_likes'] = stocks[0]['likes'] - stocks[1]['likes'];
+          stocks[1]['rel_likes'] = stocks[1]['likes'] - stocks[0]['likes'];
+          responseObject['stockData'] = stocks;
+          nextStep();
+        } else {
+          return;
         }
-      }
+      };
+      
 
       /* Process Input*/  
       if(typeof (req.query.stock) === 'string'){
