@@ -20,10 +20,7 @@ module.exports = function (app) {
   mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
   
   let stockSchema = new mongoose.Schema({
-
     symbol: {type: String, required: true},
-
-    price: { type: Number },
     likes: {type: Number, default: 0},
     ips: [String]
   })
@@ -38,12 +35,11 @@ module.exports = function (app) {
 
       // Variable to determine number of stocks
       let twoStocks = false
-
       /* Output Response */
       let outputResponse = () => {
           return res.json(responseObject)
       }
-      let stocks = [];
+      
 
       /* Find/Update Stock Document */
       let findOrUpdateStock = (stockName, documentUpdate, nextStep) => {
@@ -83,7 +79,7 @@ module.exports = function (app) {
       /* Get Price */
       let getPrice = (stockDocument, nextStep) => {
         let xhr = new XMLHttpRequest()
-        let requestUrl = 'https://stock-price-checker-proxy.freecodecamp.rocks/v1/stock/' + stockDocument['name'] + '/quote'
+        let requestUrl = 'https://stock-price-checker-proxy.freecodecamp.rocks/v1/stock/' + stockDocument['symbol'] + '/quote'
         xhr.open('GET', requestUrl, true)
         xhr.onload = () => {
           let apiResponse = JSON.parse(xhr.responseText)
@@ -94,71 +90,84 @@ module.exports = function (app) {
       }
 
       /* Build Response for 1 Stock */
-      let processOneStock = (stockDocument, nextStep) => {
+let processOneStock = (stockDocument, nextStep) => {
+  let stockData = {
+    stock: stockDocument['symbol'],
+    price: Number(stockDocument['price']) ,
+    likes: Number(stockDocument['likes'])
+  };
+  console.log('processOneStock - stockData:', stockData);
+ 
+  return res.json({ stockData });
+};
+let stocks = []        
+let processTwoStocks = (stockDocument, nextStep) => {
+  let newStock = {}
+   newStock.stock = stockDocument['symbol'];
+    newStock.price= Number(stockDocument['price']) || 0;
+    newStock['likes'] = stockDocument['likes']
 
-        responseObject['stockData']['stock'] = stockDocument['symbol'];
-        responseObject['stockData']['price'] = Number(stockDocument['price']) || 0;
+  
 
-        responseObject['stockData']['likes'] = Number(stockDocument['likes']);
-        nextStep();
-      };
-      
+  stocks.push(newStock);
 
-      let processTwoStocks = (stockDocument, nextStep) => {
-        let newStock = {};
-
-        newStock['stock'] = stockDocument['symbol'];
-       newStock['price'] = Number(stockDocument['price']) || 0;
-
-        newStock['likes'] = Number(stockDocument['likes']);
-        stocks.push(newStock);
-        if (stocks.length === 2) {
-          stocks[0]['rel_likes'] = stocks[0]['likes'] - stocks[1]['likes'];
-          stocks[1]['rel_likes'] = stocks[1]['likes'] - stocks[0]['likes'];
-          responseObject['stockData'] = stocks;
-          nextStep();
-        } else {
-          return;
-        }
-      };
-      
-
-      /* Process Input*/  
-      if(typeof (req.query.stock) === 'string'){
-        /* One Stock */
-        let stockName = req.query.stock
-        
-        let documentUpdate = {}
-        if(req.query.like && req.query.like === 'true'){
-            likeStock(stockName, findOrUpdateStock)
-        }else{
-            findOrUpdateStock(stockName, documentUpdate, getPrice)
-        }
-
-
-      } else if (Array.isArray(req.query.stock)){
-        twoStocks = true
-        
-        /* Stock 1 */
-        let stockName = req.query.stock[0]
-        if(req.query.like && req.query.like === 'true'){
-            likeStock(stockName, findOrUpdateStock)
-        }else{
-            let documentUpdate = {}
-            findOrUpdateStock(stockName, documentUpdate, getPrice)
-        }
-
-        /* Stock 2 */
-        stockName = req.query.stock[1]
-        if(req.query.like && req.query.like === 'true'){
-            likeStock(stockName, findOrUpdateStock)
-        }else{
-            let documentUpdate = {}
-            findOrUpdateStock(stockName, documentUpdate, getPrice)
-        }
-
-
-      }
-    });
+  if (stocks.length === 2) {
+    stocks[0]['rel_likes'] = stocks[0]['likes'] - stocks[1]['likes']
+    stocks[1]['rel_likes'] = stocks[1]['likes'] - stocks[0]['likes']
+    responseObject['stockData'] = stocks
     
+    let stockData = stocks.map(stock => ({
+      stock: stock.stock,
+      price: stock.price,
+      rel_likes: stock.rel_likes
+    }));
+    console.log( stockData);
+  
+    return res.json({ stockData });
+    nextStep()
+
+  }
+}
+
+      
+      
+
+   /* Process Input*/  
+   if(typeof (req.query.stock) === 'string'){
+    /* One Stock */
+    let stockName = req.query.stock
+    
+    let documentUpdate = {}
+    if(req.query.like && req.query.like === 'true'){
+        likeStock(stockName, findOrUpdateStock)
+    }else{
+        findOrUpdateStock(stockName, documentUpdate, getPrice)
+    }
+
+
+  } else if (Array.isArray(req.query.stock)){
+    twoStocks = true
+    
+    /* Stock 1 */
+    let stockName = req.query.stock[0]
+    if(req.query.like && req.query.like === 'true'){
+        likeStock(stockName, findOrUpdateStock)
+    }else{
+        let documentUpdate = {}
+        findOrUpdateStock(stockName, documentUpdate, getPrice)
+    }
+
+    /* Stock 2 */
+    stockName = req.query.stock[1]
+    if(req.query.like && req.query.like === 'true'){
+        likeStock(stockName, findOrUpdateStock)
+    }else{
+        let documentUpdate = {}
+        findOrUpdateStock(stockName, documentUpdate, getPrice)
+    }
+
+
+  }
+});
+
 };
