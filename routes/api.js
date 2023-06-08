@@ -21,6 +21,7 @@ module.exports = function (app) {
   
   let stockSchema = new mongoose.Schema({
     name: {type: String, required: true},
+    price: { type: Number, default: 0 },
     likes: {type: Number, default: 0},
     ips: [String]
   })
@@ -40,6 +41,7 @@ module.exports = function (app) {
       let outputResponse = () => {
           return res.json(responseObject)
       }
+      let stocks = [];
 
       /* Find/Update Stock Document */
       let findOrUpdateStock = (stockName, documentUpdate, nextStep) => {
@@ -91,29 +93,29 @@ module.exports = function (app) {
 
       /* Build Response for 1 Stock */
       let processOneStock = (stockDocument, nextStep) => {
-        responseObject['stockData']['stock'] = stockDocument['name']
-        responseObject['stockData']['price'] = stockDocument['price']
-        responseObject['stockData']['likes'] = stockDocument['likes']
-        nextStep()
-      }
+        responseObject['stockData']['stock'] = stockDocument['name'];
+        responseObject['stockData']['price'] = Number(stockDocument['price']);
+        responseObject['stockData']['likes'] = Number(stockDocument['likes']);
+        nextStep();
+      };
+      
 
-      let stocks = []        
-      /* Build Response for 2 Stocks */
       let processTwoStocks = (stockDocument, nextStep) => {
-        let newStock = {}
-        newStock['stock'] = stockDocument['name']
-        newStock['price'] = stockDocument['price']
-        newStock['likes'] = stockDocument['likes']
-        stocks.push(newStock)
-        if(stocks.length === 2){
-          stocks[0]['rel_likes'] = stocks[0]['likes'] - stocks[1]['likes']
-          stocks[1]['rel_likes'] = stocks[1]['likes'] - stocks[0]['likes']
-          responseObject['stockData'] = stocks
-          nextStep()
-        }else{
-          return
+        let newStock = {};
+        newStock['stock'] = stockDocument['name'];
+        newStock['price'] = Number(stockDocument['price']);
+        newStock['likes'] = Number(stockDocument['likes']);
+        stocks.push(newStock);
+        if (stocks.length === 2) {
+          stocks[0]['rel_likes'] = stocks[0]['likes'] - stocks[1]['likes'];
+          stocks[1]['rel_likes'] = stocks[1]['likes'] - stocks[0]['likes'];
+          responseObject['stockData'] = stocks;
+          nextStep();
+        } else {
+          return;
         }
-      }
+      };
+      
 
       /* Process Input*/  
       if(typeof (req.query.stock) === 'string'){
