@@ -20,11 +20,9 @@ module.exports = function (app) {
   mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
   
   let stockSchema = new mongoose.Schema({
-<<<<<<< HEAD
+
     symbol: {type: String, required: true},
-=======
-    name: {type: String, required: true},
->>>>>>> 6a684aa3d4a13355e30c97fe86adc03117d79d41
+
     price: { type: Number },
     likes: {type: Number, default: 0},
     ips: [String]
@@ -97,13 +95,10 @@ module.exports = function (app) {
 
       /* Build Response for 1 Stock */
       let processOneStock = (stockDocument, nextStep) => {
-<<<<<<< HEAD
+
         responseObject['stockData']['stock'] = stockDocument['symbol'];
         responseObject['stockData']['price'] = Number(stockDocument['price']) || 0;
-=======
-        responseObject['stockData']['stock'] = stockDocument['name'];
-        responseObject['stockData']['price'] = parseFloat(stockDocument['price'].toFixed(2));
->>>>>>> 6a684aa3d4a13355e30c97fe86adc03117d79d41
+
         responseObject['stockData']['likes'] = Number(stockDocument['likes']);
         nextStep();
       };
@@ -111,13 +106,10 @@ module.exports = function (app) {
 
       let processTwoStocks = (stockDocument, nextStep) => {
         let newStock = {};
-<<<<<<< HEAD
+
         newStock['stock'] = stockDocument['symbol'];
-        responseObject['stockData']['price'] = Number(stockDocument['price']) || 0;
-=======
-        newStock['stock'] = stockDocument['name'];
-        newStock['price'] = parseFloat(stockDocument['price'].toFixed(2));
->>>>>>> 6a684aa3d4a13355e30c97fe86adc03117d79d41
+       newStock['price'] = Number(stockDocument['price']) || 0;
+
         newStock['likes'] = Number(stockDocument['likes']);
         stocks.push(newStock);
         if (stocks.length === 2) {
