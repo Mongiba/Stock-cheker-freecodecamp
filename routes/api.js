@@ -21,7 +21,7 @@ module.exports = function (app) {
   
   let stockSchema = new mongoose.Schema({
     name: {type: String, required: true},
-    price: { type: Number, default: 0 },
+    price: { type: Number },
     likes: {type: Number, default: 0},
     ips: [String]
   })
@@ -94,7 +94,7 @@ module.exports = function (app) {
       /* Build Response for 1 Stock */
       let processOneStock = (stockDocument, nextStep) => {
         responseObject['stockData']['stock'] = stockDocument['name'];
-        responseObject['stockData']['price'] = Number(stockDocument['price']);
+        responseObject['stockData']['price'] = parseFloat(stockDocument['price'].toFixed(2));
         responseObject['stockData']['likes'] = Number(stockDocument['likes']);
         nextStep();
       };
@@ -103,7 +103,7 @@ module.exports = function (app) {
       let processTwoStocks = (stockDocument, nextStep) => {
         let newStock = {};
         newStock['stock'] = stockDocument['name'];
-        newStock['price'] = Number(stockDocument['price']);
+        newStock['price'] = parseFloat(stockDocument['price'].toFixed(2));
         newStock['likes'] = Number(stockDocument['likes']);
         stocks.push(newStock);
         if (stocks.length === 2) {
