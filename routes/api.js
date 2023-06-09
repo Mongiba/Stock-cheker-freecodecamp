@@ -11,7 +11,7 @@
 var expect = require('chai').expect;
 let mongodb = require('mongodb')
 let mongoose = require('mongoose')
-let XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest
+const fetch = require('node-fetch');
 require('dotenv').config();
 
 module.exports = function (app) {
@@ -78,16 +78,19 @@ module.exports = function (app) {
       
       /* Get Price */
       let getPrice = (stockDocument, nextStep) => {
-        let xhr = new XMLHttpRequest()
-        let requestUrl = 'https://stock-price-checker-proxy.freecodecamp.rocks/v1/stock/' + stockDocument['symbol'] + '/quote'
-        xhr.open('GET', requestUrl, true)
-        xhr.onload = () => {
-          let apiResponse = JSON.parse(xhr.responseText)
-          stockDocument['price'] = Number(apiResponse['latestPrice']).toFixed(2);
-          nextStep(stockDocument, outputResponse)
-        }
-        xhr.send()
-      }
+        let requestUrl = `https://stock-price-checker-proxy.freecodecamp.rocks/v1/stock/${stockDocument['symbol']}/quote`;
+      
+        fetch(requestUrl)
+          .then(response => response.json())
+          .then(apiResponse => {
+            stockDocument['price'] = Number(apiResponse['latestPrice']).toFixed(2);
+            nextStep(stockDocument, outputResponse);
+          })
+          .catch(error => {
+            console.log(error);
+          });
+      };
+      
 
       /* Build Response for 1 Stock */
 let processOneStock = (stockDocument, nextStep) => {
